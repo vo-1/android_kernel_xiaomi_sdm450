@@ -3,6 +3,7 @@
  *
  * Copyright (C) 1995-2001 Russell King
  * Copyright (C) 2012 ARM Ltd.
+ * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -245,14 +246,12 @@ static void __init request_standard_resources(void)
 			request_resource(res, &kernel_data);
 	}
 }
-#ifdef CONFIG_OF_FLATTREE
+
 void __init early_init_dt_setup_pureason_arch(unsigned long pu_reason)
 {
 	set_powerup_reason(pu_reason);
 	pr_info("Powerup reason=0x%x\n", get_powerup_reason());
 }
-#endif
-
 
 #ifdef CONFIG_BLK_DEV_INITRD
 /*

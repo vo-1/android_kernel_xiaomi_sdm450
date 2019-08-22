@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 /* Copyright (c) 2015-2017, The Linux Foundation. All rights reserved.
  * Copyright (C) 2019 XiaoMi, Inc.
+=======
+/* Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+>>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -961,8 +965,7 @@ exit:
 	msm8x16_wcd_compute_impedance(codec, impedance_l, impedance_r,
 				      zl, zr, high);
 
-
-	pr_err("%s: RL %d ohm, RR %d ohm\n", __func__, *zl, *zr);
+	pr_debug("%s: RL %d ohm, RR %d ohm\n", __func__, *zl, *zr);
 	pr_debug("%s: Impedance detection completed\n", __func__);
 }
 
@@ -3614,7 +3617,7 @@ static int msm8x16_wcd_codec_enable_micbias(struct snd_soc_dapm_widget *w,
 			snd_soc_update_bits(codec, micb_int_reg, 0x08, 0x08);
 			msm8x16_notifier_call(codec,
 					WCD_EVENT_POST_MICBIAS_2_ON);
-		} else if (strnstr(w->name, internal3_text, 30)) {
+		} else if (strnstr(w->name, internal3_text, strlen(w->name))) {
 			snd_soc_update_bits(codec, micb_int_reg, 0x01, 0x01);
 		} else if (strnstr(w->name, external2_text, strlen(w->name))) {
 			msm8x16_notifier_call(codec,
@@ -3627,7 +3630,7 @@ static int msm8x16_wcd_codec_enable_micbias(struct snd_soc_dapm_widget *w,
 		} else if (strnstr(w->name, internal2_text, strlen(w->name))) {
 			msm8x16_notifier_call(codec,
 					WCD_EVENT_POST_MICBIAS_2_OFF);
-		} else if (strnstr(w->name, internal3_text, 30)) {
+		} else if (strnstr(w->name, internal3_text, strlen(w->name))) {
 			snd_soc_update_bits(codec, micb_int_reg, 0x2, 0x0);
 		} else if (strnstr(w->name, external2_text, strlen(w->name))) {
 			/*
@@ -3901,10 +3904,19 @@ static int msm8x16_wcd_codec_config_compander(struct snd_soc_codec *codec,
 					int interp_n, int event)
 {
 	struct msm8x16_wcd_priv *msm8x16_wcd = snd_soc_codec_get_drvdata(codec);
+	int comp_ch_bits_set = 0x03;
 
 	dev_dbg(codec->dev, "%s: event %d shift %d, enabled %d\n",
 		__func__, event, interp_n,
 		msm8x16_wcd->comp_enabled[interp_n]);
+
+	/* compander is invalid */
+	if (msm8x16_wcd->comp_enabled[interp_n] != COMPANDER_1 &&
+	    msm8x16_wcd->comp_enabled[interp_n]) {
+		dev_dbg(codec->dev, "%s: Invalid compander %d\n", __func__,
+			msm8x16_wcd->comp_enabled[interp_n]);
+		return 0;
+	}
 
 	/* compander is not enabled */
 	if (!msm8x16_wcd->comp_enabled[interp_n]) {
@@ -3916,55 +3928,50 @@ static int msm8x16_wcd_codec_config_compander(struct snd_soc_codec *codec,
 		return 0;
 	}
 
-	switch (msm8x16_wcd->comp_enabled[interp_n]) {
-	case COMPANDER_1:
-		if (SND_SOC_DAPM_EVENT_ON(event)) {
-			if (get_codec_version(msm8x16_wcd) >= DIANGU)
-				snd_soc_update_bits(codec,
-					MSM8X16_WCD_A_ANALOG_RX_COM_BIAS_DAC,
-					0x08, 0x08);
-			/* Enable Compander Clock */
+	if (SND_SOC_DAPM_EVENT_ON(event)) {
+		if (get_codec_version(msm8x16_wcd) >= DIANGU)
 			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0x0F, 0x09);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_CLK_RX_B2_CTL, 0x01, 0x01);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B1_CTL,
-				1 << interp_n, 1 << interp_n);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B3_CTL, 0xFF, 0x01);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0xF0, 0x50);
-			/* add sleep for compander to settle */
-			usleep_range(1000, 1100);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B3_CTL, 0xFF, 0x28);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0xF0, 0xB0);
+				MSM8X16_WCD_A_ANALOG_RX_COM_BIAS_DAC,
+				0x08, 0x08);
+		/* Enable Compander Clock */
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0x0F, 0x09);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_CLK_RX_B2_CTL, 0x01, 0x01);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B1_CTL,
+			1 << interp_n, 1 << interp_n);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B3_CTL, 0xFF, 0x01);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0xF0, 0x50);
+		/* add sleep for compander to settle */
+		usleep_range(1000, 1100);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B3_CTL, 0xFF, 0x28);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0xF0, 0xB0);
 
-			/* Enable Compander GPIO */
-			if (msm8x16_wcd->codec_hph_comp_gpio)
-				msm8x16_wcd->codec_hph_comp_gpio(1);
-		} else if (SND_SOC_DAPM_EVENT_OFF(event)) {
-			/* Disable Compander GPIO */
-			if (msm8x16_wcd->codec_hph_comp_gpio)
-				msm8x16_wcd->codec_hph_comp_gpio(0);
+		/* Enable Compander GPIO */
+		if (msm8x16_wcd->codec_hph_comp_gpio)
+			msm8x16_wcd->codec_hph_comp_gpio(1);
+	} else if (SND_SOC_DAPM_EVENT_OFF(event)) {
+		/* Disable Compander GPIO */
+		if (msm8x16_wcd->codec_hph_comp_gpio)
+			msm8x16_wcd->codec_hph_comp_gpio(0);
 
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_COMP0_B1_CTL,
+			1 << interp_n, 0);
+		comp_ch_bits_set = snd_soc_read(codec,
+					MSM8X16_WCD_A_CDC_COMP0_B1_CTL);
+		if ((comp_ch_bits_set & 0x03) == 0x00) {
 			snd_soc_update_bits(codec,
 				MSM8X16_WCD_A_CDC_COMP0_B2_CTL, 0x0F, 0x05);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_COMP0_B1_CTL,
-				1 << interp_n, 0);
-			snd_soc_update_bits(codec,
-				MSM8X16_WCD_A_CDC_CLK_RX_B2_CTL, 0x01, 0x00);
+		snd_soc_update_bits(codec,
+			MSM8X16_WCD_A_CDC_CLK_RX_B2_CTL, 0x01, 0x00);
 		}
-		break;
-	default:
-		dev_dbg(codec->dev, "%s: Invalid compander %d\n", __func__,
-				msm8x16_wcd->comp_enabled[interp_n]);
-		break;
-	};
-
+	}
 	return 0;
 }
 
@@ -4100,9 +4107,6 @@ void wcd_imped_config(struct snd_soc_codec *codec,
 
 	value = wcd_get_impedance_value(imped);
 
-#ifdef WT_COMPILE_FACTORY_VERSION
-	value = 16;
-#endif
 	if (value < wcd_imped_val[0]) {
 		pr_debug("%s, detected impedance is less than 4 Ohm\n",
 			 __func__);
@@ -4110,9 +4114,6 @@ void wcd_imped_config(struct snd_soc_codec *codec,
 	}
 
 	codec_version = get_codec_version(msm8x16_wcd);
-
-	pr_err("%s codec_version %d imped %u set_gain %d\n", __func__,
-									codec_version, value, set_gain);
 
 	if (set_gain) {
 		switch (codec_version) {
@@ -4274,8 +4275,6 @@ static int msm8x16_wcd_lo_dac_event(struct snd_soc_dapm_widget *w,
 			MSM8X16_WCD_A_ANALOG_RX_LO_DAC_CTL, 0x80, 0x80);
 		snd_soc_update_bits(codec,
 			MSM8X16_WCD_A_ANALOG_RX_LO_DAC_CTL, 0x08, 0x00);
-		snd_soc_update_bits(codec,
-			MSM8X16_WCD_A_ANALOG_RX_LO_EN_CTL, 0x40, 0x40);
 		break;
 	case SND_SOC_DAPM_POST_PMD:
 		usleep_range(20000, 20100);
@@ -4287,8 +4286,6 @@ static int msm8x16_wcd_lo_dac_event(struct snd_soc_dapm_widget *w,
 			MSM8X16_WCD_A_ANALOG_RX_LO_DAC_CTL, 0x08, 0x00);
 		snd_soc_update_bits(codec,
 			MSM8X16_WCD_A_ANALOG_RX_LO_EN_CTL, 0x80, 0x00);
-		snd_soc_update_bits(codec,
-			MSM8X16_WCD_A_ANALOG_RX_LO_EN_CTL, 0x40, 0x00);
 		snd_soc_update_bits(codec,
 			MSM8X16_WCD_A_ANALOG_RX_LO_EN_CTL, 0x20, 0x00);
 		snd_soc_update_bits(codec,
@@ -4480,12 +4477,11 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"Ext Spk", NULL, "Ext Spk Switch"},
 	{"Ext Spk Switch", "On", "HPHL PA"},
 	{"Ext Spk Switch", "On", "HPHR PA"},
-	/*bug_293382, zk-zhanghao, 2017/0913,modified spk_pop start*/
+
 	#if defined (CONFIG_D1_ROSY)
 	{"Ext Spk Switch", "On", "LINEOUT PA"},
 	#endif
-	/*bug_293382, zk-zhanghao, 2017/0913,modified spk_pop end*/
-
+	
 	{"HPHL PA", NULL, "HPHL"},
 	{"HPHR PA", NULL, "HPHR"},
 	{"HPHL", "Switch", "HPHL DAC"},
@@ -4978,9 +4974,9 @@ static int msm8x16_wcd_codec_enable_lo_pa(struct snd_soc_dapm_widget *w,
 		snd_soc_update_bits(codec,
 			MSM8X16_WCD_A_CDC_RX3_B6_CTL, 0x01, 0x00);
 		break;
-	case SND_SOC_DAPM_POST_PMD:
+	case SND_SOC_DAPM_PRE_PMD:
 		snd_soc_update_bits(codec,
-			MSM8X16_WCD_A_CDC_RX3_B6_CTL, 0x01, 0x00);
+			MSM8X16_WCD_A_CDC_RX3_B6_CTL, 0x01, 0x01);
 		break;
 	}
 
@@ -5543,7 +5539,7 @@ static struct regulator *wcd8x16_wcd_codec_find_regulator(
 			return msm8x16->supplies[i].consumer;
 	}
 
-	dev_dbg(msm8x16->dev, "Error: regulator not found:%s\n"
+	dev_err(msm8x16->dev, "Error: regulator not found:%s\n"
 				, name);
 	return NULL;
 }
@@ -5941,8 +5937,7 @@ static int msm8x16_wcd_codec_probe(struct snd_soc_codec *codec)
 	accdet_data.state = 0;
 
 	ret = switch_dev_register(&accdet_data);
-	if (ret)
-	{
+	if (ret) {
 		dev_err(codec->dev, "%s: Failed to register h2w\n", __func__);
 		return -ENOMEM;
 	}

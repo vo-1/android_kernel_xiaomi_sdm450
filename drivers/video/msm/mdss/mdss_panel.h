@@ -1,5 +1,5 @@
-/* Copyright (c) 2008-2017, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
+/* Copyright (c) 2008-2019, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -61,7 +61,7 @@ enum fps_resolution {
 #define WRITEBACK_PANEL		10	/* Wifi display */
 #define LVDS_PANEL		11	/* LVDS */
 #define EDP_PANEL		12	/* LVDS */
-
+#define SPI_PANEL		13
 #define DSC_PPS_LEN		128
 
 /* HDR propeties count */
@@ -109,6 +109,7 @@ enum {
 	MDSS_PANEL_INTF_DSI,
 	MDSS_PANEL_INTF_EDP,
 	MDSS_PANEL_INTF_HDMI,
+	MDSS_PANEL_INTF_SPI,
 };
 
 enum {
@@ -117,6 +118,13 @@ enum {
 	MDSS_PANEL_POWER_LP1,
 	MDSS_PANEL_POWER_LP2,
 };
+
+enum {
+	MDSS_PANEL_BLANK_BLANK = 0,
+	MDSS_PANEL_BLANK_UNBLANK,
+	MDSS_PANEL_BLANK_LOW_POWER,
+};
+
 
 enum {
 	MDSS_PANEL_LOW_PERSIST_MODE_OFF = 0,
@@ -429,6 +437,10 @@ struct edp_panel_info {
 	char frame_rate;	/* fps */
 };
 
+struct spi_panel_info {
+	char frame_rate;
+};
+
 /**
  * struct dynamic_fps_data - defines dynamic fps related data
  * @hfp: horizontal front porch
@@ -643,7 +655,6 @@ struct mdss_panel_info {
 	int pwm_pmic_gpio;
 	int pwm_lpg_chan;
 	int pwm_period;
-	unsigned int cabcmode;
 	bool dynamic_fps;
 	bool ulps_feature_enabled;
 	bool ulps_suspend_enabled;
@@ -678,6 +689,7 @@ struct mdss_panel_info {
 	u32 partial_update_roi_merge;
 	struct ion_handle *splash_ihdl;
 	int panel_power_state;
+	int blank_state;
 	int compression_mode;
 
 	uint32_t panel_dead;
@@ -737,6 +749,7 @@ struct mdss_panel_info {
 	struct lcd_panel_info lcdc;
 	struct fbc_panel_info fbc;
 	struct mipi_panel_info mipi;
+	struct spi_panel_info spi;
 	struct lvds_panel_info lvds;
 	struct edp_panel_info edp;
 
@@ -795,7 +808,6 @@ struct mdss_panel_timing {
 struct mdss_panel_data {
 	struct mdss_panel_info panel_info;
 	void (*set_backlight) (struct mdss_panel_data *pdata, u32 bl_level);
-	int (*mdss_dsi_panel_eye_mode) (struct mdss_panel_data *pdata, int eye_mode);
 	int (*apply_display_setting)(struct mdss_panel_data *pdata, u32 mode);
 	unsigned char *mmss_cc_base;
 
@@ -824,6 +836,7 @@ struct mdss_panel_data {
 	struct mdss_panel_data *next;
 
 	int panel_te_gpio;
+	int panel_en_gpio;
 	struct completion te_done;
 };
 
@@ -870,6 +883,9 @@ static inline u32 mdss_panel_get_framerate(struct mdss_panel_info *panel_info,
 		break;
 	case WRITEBACK_PANEL:
 		frame_rate = DEFAULT_FRAME_RATE;
+		break;
+	case SPI_PANEL:
+		frame_rate = panel_info->spi.frame_rate;
 		break;
 	case DTV_PANEL:
 		if (panel_info->dynamic_fps) {

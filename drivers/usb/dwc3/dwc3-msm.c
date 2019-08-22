@@ -1,5 +1,5 @@
 /* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -57,11 +57,10 @@
 
 #if defined(CONFIG_D1_ROSY)
 #define DWC3_IDEV_CHG_MAX 2000
-#else
-#define DWC3_IDEV_CHG_MAX 1500
-#endif
-#define DWC3_HVDCP_CHG_MAX 1800
 #define DWC3_PROPRIETARY_CHG_MAX 1000
+#endif
+
+#define DWC3_HVDCP_CHG_MAX 1800
 #define DWC3_WAKEUP_SRC_TIMEOUT 5000
 
 #define MICRO_5V    5000000
@@ -280,11 +279,11 @@ struct dwc3_msm {
 	unsigned int		lpm_to_suspend_delay;
 	bool			init;
 
-	int			wt_check_times;
 	u32                     pm_qos_latency;
 	struct pm_qos_request   pm_qos_req_dma;
 	struct delayed_work     perf_vote_work;
 	enum dwc3_perf_mode	curr_mode;
+	int			wt_check_times;
 };
 
 #define USB_HSPHY_3P3_VOL_MIN		3050000 /* uV */
@@ -2506,6 +2505,7 @@ static irqreturn_t msm_dwc3_pwr_irq(int irq, void *data)
 	return IRQ_HANDLED;
 }
 
+
 static int dwc3_msm_prop_usbin_voltage_now(struct dwc3_msm *mdwc)
 {
 	int rc = 0;
@@ -2525,6 +2525,7 @@ static int dwc3_msm_prop_usbin_voltage_now(struct dwc3_msm *mdwc)
 		return results.physical;
 	}
 }
+
 
 static int dwc3_msm_power_get_property_usb(struct power_supply *psy,
 				  enum power_supply_property psp,
@@ -3816,6 +3817,7 @@ static int dwc3_msm_gadget_vbus_draw(struct dwc3_msm *mdwc, unsigned mA)
 	if (mdwc->charging_disabled)
 		return 0;
 
+
 	if ((mdwc->chg_type != DWC3_INVALID_CHARGER) &&
 			(mdwc->chg_type != DWC3_PROPRIETARY_CHARGER) &&
 			(mdwc->chg_type != DWC3_DCP_CHARGER)) {
@@ -4103,7 +4105,7 @@ static void dwc3_msm_otg_sm_work(struct work_struct *w)
 			dbg_event(0xFF, "b_sess_vld", 0);
 			switch (mdwc->chg_type) {
 			case DWC3_DCP_CHARGER:
-				dbg_event(0xFF, "DCPCharger", 0);
+				dev_dbg(mdwc->dev, "lpm, DCP charger\n");
 				dwc3_msm_gadget_vbus_draw(mdwc,
 						dcp_max_current);
 				dbg_event(0xFF, "RelDCPBIDLE", 0);
@@ -4275,7 +4277,7 @@ static void dwc3_msm_otg_sm_work(struct work_struct *w)
 
 	if (work) {
 		dev_info(mdwc->dev, "XJB delay = %lu  mdwc->wt_check_times = %d\n", delay, mdwc->wt_check_times);
-		queue_delayed_work(mdwc->sm_usb_wq, &mdwc->sm_work, delay);
+		schedule_delayed_work(&mdwc->sm_work, delay);
 	}
 
 ret:

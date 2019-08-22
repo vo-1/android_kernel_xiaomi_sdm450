@@ -1,5 +1,4 @@
 /* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1089,6 +1088,9 @@ static int msm_compr_configure_dsp_for_playback
 	int dir = IN, ret = 0;
 	struct audio_client *ac = prtd->audio_client;
 	uint32_t stream_index;
+	union snd_codec_options *codec_options =
+		&(prtd->codec_param.codec.options);
+
 	struct asm_softpause_params softpause = {
 		.enable = SOFT_PAUSE_ENABLE,
 		.period = SOFT_PAUSE_PERIOD,
@@ -1113,6 +1115,9 @@ static int msm_compr_configure_dsp_for_playback
 		bits_per_sample = 24;
 	else if (prtd->codec_param.codec.format == SNDRV_PCM_FORMAT_S32_LE)
 		bits_per_sample = 32;
+	else if (prtd->codec == FORMAT_FLAC && codec_options &&
+		(codec_options->flac_dec.sample_size != 0))
+		bits_per_sample = codec_options->flac_dec.sample_size;
 
 	if (prtd->compr_passthr != LEGACY_PCM) {
 		ret = q6asm_open_write_compressed(ac, prtd->codec,
@@ -1294,13 +1299,8 @@ static int msm_compr_configure_dsp_for_capture(struct snd_compr_stream *cstream)
 	pr_debug("%s: stream_id %d bits_per_sample %d\n",
 			__func__, ac->stream_id, bits_per_sample);
 
-	if (prtd->codec_param.codec.flags & COMPRESSED_TIMESTAMP_FLAG) {
-		ret = q6asm_open_read_v4(prtd->audio_client, FORMAT_LINEAR_PCM,
-			bits_per_sample, true);
-	} else {
-		ret = q6asm_open_read_v4(prtd->audio_client, FORMAT_LINEAR_PCM,
-			bits_per_sample, false);
-	}
+	ret = q6asm_open_read_v4(prtd->audio_client, FORMAT_LINEAR_PCM,
+		bits_per_sample);
 	if (ret < 0) {
 		pr_err("%s: q6asm_open_read failed:%d\n", __func__, ret);
 		return ret;
@@ -1958,6 +1958,8 @@ static int msm_compr_trigger(struct snd_compr_stream *cstream, int cmd)
 	int stream_id;
 	uint32_t stream_index;
 	uint16_t bits_per_sample = 16;
+	union snd_codec_options *codec_options =
+		&(prtd->codec_param.codec.options);
 
 	spin_lock_irqsave(&prtd->lock, flags);
 	if (atomic_read(&prtd->error)) {
@@ -2386,6 +2388,9 @@ static int msm_compr_trigger(struct snd_compr_stream *cstream, int cmd)
 		else if (prtd->codec_param.codec.format ==
 			 SNDRV_PCM_FORMAT_S32_LE)
 			bits_per_sample = 32;
+		else if (prtd->codec == FORMAT_FLAC && codec_options &&
+			(codec_options->flac_dec.sample_size != 0))
+			bits_per_sample = codec_options->flac_dec.sample_size;
 
 		pr_debug("%s: open_write stream_id %d bits_per_sample %d",
 				__func__, stream_id, bits_per_sample);

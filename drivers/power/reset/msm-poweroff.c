@@ -1,5 +1,5 @@
-/* Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
+/* Copyright (c) 2013-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -56,10 +56,7 @@ static void __iomem *msm_ps_hold;
 static phys_addr_t tcsr_boot_misc_detect;
 static void scm_disable_sdi(void);
 
-
-#if defined(WT_FINAL_RELEASE)
-static int download_mode;
-#elif defined(CONFIG_MSM_DLOAD_MODE)
+#ifdef CONFIG_MSM_DLOAD_MODE
 /* Runtime could be only changed value once.
 * There is no API from TZ to re-enable the registers.
 * So the SDI cannot be re-enabled when it already by-passed.
@@ -158,7 +155,6 @@ static bool get_dload_mode(void)
 
 static void enable_emergency_dload_mode(void)
 {
-#if 0
 	int ret;
 
 	if (emergency_dload_mode_addr) {
@@ -180,9 +176,6 @@ static void enable_emergency_dload_mode(void)
 	ret = scm_set_dload_mode(SCM_EDLOAD_MODE, 0);
 	if (ret)
 		pr_err("Failed to set secure EDLOAD mode: %d\n", ret);
-#endif
-	pr_err("Failed to set secure EDLOAD mode: Xiaomi Required\n");
-
 }
 
 static int dload_set(const char *val, struct kernel_param *kp)

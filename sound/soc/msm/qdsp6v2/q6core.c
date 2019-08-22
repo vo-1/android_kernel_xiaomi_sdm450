@@ -1,5 +1,4 @@
-/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
- * Copyright (C) 2019 XiaoMi, Inc.
+/* Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -110,6 +109,12 @@ static int32_t aprv2_core_fn_q(struct apr_client_data *data, void *priv)
 
 		payload1 = data->payload;
 
+		if (data->payload_size < 2 * sizeof(uint32_t)) {
+			pr_err("%s: payload has invalid size %d\n",
+				__func__, data->payload_size);
+			return -EINVAL;
+		}
+
 		switch (payload1[0]) {
 
 		case AVCS_CMD_SHARED_MEM_UNMAP_REGIONS:
@@ -166,6 +171,11 @@ static int32_t aprv2_core_fn_q(struct apr_client_data *data, void *priv)
 		break;
 	}
 	case AVCS_CMDRSP_SHARED_MEM_MAP_REGIONS:
+		if (data->payload_size < sizeof(uint32_t)) {
+			pr_err("%s: payload has invalid size %d\n",
+				__func__, data->payload_size);
+			return -EINVAL;
+		}
 		payload1 = data->payload;
 		pr_debug("%s: AVCS_CMDRSP_SHARED_MEM_MAP_REGIONS handle %d\n",
 			__func__, payload1[0]);
@@ -174,6 +184,11 @@ static int32_t aprv2_core_fn_q(struct apr_client_data *data, void *priv)
 		wake_up(&q6core_lcl.bus_bw_req_wait);
 		break;
 	case AVCS_CMDRSP_ADSP_EVENT_GET_STATE:
+		if (data->payload_size < sizeof(uint32_t)) {
+			pr_err("%s: payload has invalid size %d\n",
+				__func__, data->payload_size);
+			return -EINVAL;
+		}
 		payload1 = data->payload;
 		q6core_lcl.param = payload1[0];
 		pr_debug("%s: Received ADSP get state response 0x%x\n",
@@ -184,6 +199,11 @@ static int32_t aprv2_core_fn_q(struct apr_client_data *data, void *priv)
 		wake_up(&q6core_lcl.bus_bw_req_wait);
 		break;
 	case AVCS_GET_VERSIONS_RSP:
+		if (data->payload_size < 4 * sizeof(uint32_t)) {
+			pr_err("%s: payload has invalid size %d\n",
+				__func__, data->payload_size);
+			return -EINVAL;
+		}
 		payload1 = data->payload;
 		pr_debug("%s: Received ADSP version response[3]0x%x\n",
 					 __func__, payload1[3]);
@@ -210,6 +230,11 @@ static int32_t aprv2_core_fn_q(struct apr_client_data *data, void *priv)
 		break;
 
 	 case AVCS_CMDRSP_GET_LICENSE_VALIDATION_RESULT:
+		if (data->payload_size < sizeof(uint32_t)) {
+			pr_err("%s: payload has invalid size %d\n",
+				__func__, data->payload_size);
+			return -EINVAL;
+		}
 		payload1 = data->payload;
 		pr_debug("%s: cmd = LICENSE_VALIDATION_RESULT, result = 0x%x\n",
 				__func__, payload1[0]);
@@ -253,7 +278,7 @@ void ocm_core_open(void)
 					aprv2_core_fn_q, 0xFFFFFFFF, NULL);
 	pr_debug("%s: Open_q %pK\n", __func__, q6core_lcl.core_handle_q);
 	if (q6core_lcl.core_handle_q == NULL)
-		pr_err("%s: Unable to register CORE\n", __func__);
+		pr_err_ratelimited("%s: Unable to register CORE\n", __func__);
 }
 
 struct cal_block_data *cal_utils_get_cal_block_by_key(
@@ -596,6 +621,12 @@ uint32_t core_set_dolby_manufacturer_id(int manufacturer_id)
 	return rc;
 }
 
+/*
+ * q6core_is_adsp_ready - get adsp state
+ *
+ * Return:  true on adsp state is up or false.
+ */
+
 bool q6core_is_adsp_ready(void)
 {
 	int rc;
@@ -613,7 +644,7 @@ bool q6core_is_adsp_ready(void)
 	q6core_lcl.bus_bw_resp_received = 0;
 	rc = apr_send_pkt(q6core_lcl.core_handle_q, (uint32_t *)&hdr);
 	if (rc < 0) {
-		pr_err("%s: Get ADSP state APR packet send event %d\n",
+		pr_err_ratelimited("%s: Get ADSP state APR packet send event %d\n",
 			__func__, rc);
 		goto bail;
 	}
@@ -630,7 +661,7 @@ bail:
 	pr_debug("%s: leave, rc %d, adsp ready %d\n", __func__, rc, ret);
 	return ret;
 }
-
+EXPORT_SYMBOL(q6core_is_adsp_ready);
 
 static int q6core_map_memory_regions(phys_addr_t *buf_add, uint32_t mempool_id,
 			uint32_t *bufsz, uint32_t bufcnt, uint32_t *map_handle)
