@@ -177,7 +177,6 @@
 	/delete-property/ qcom,msm-vdd-wsa-switch-current;
 };
 
-<<<<<<< HEAD
 &pm8953_l2 {
 	status = "okay";
 	regulator-always-on;
@@ -195,8 +194,6 @@
 	qcom,mount-angle = <90>;
 };
 
-=======
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
 &pm8953_diangu_dig {
 	status = "ok";
 };
@@ -412,13 +409,10 @@
 	interrupt-map-mask = <0xffffffff>;
 	interrupt-map = <0 &intc 0 125 0
 		1 &intc 0 221 0
-<<<<<<< HEAD
 		2 &tlmm 133 0>;
 	interrupt-names = "hc_irq", "pwr_irq", "status_irq";
-=======
 		2 &tlmm 114 0x1>;
 	interrupt-names = "hc_irq", "pwr_irq", "sdiowakeup_irq";
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
 
 	qcom,clk-rates = <400000 20000000 25000000 50000000 100000000
 				177770000>;
@@ -577,8 +571,6 @@
 		status = "disabled";
 	};
 };
-<<<<<<< HEAD
-=======
 
 &firmware {
 	android {
@@ -604,4 +596,3 @@
 		};
 	};
 };
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0

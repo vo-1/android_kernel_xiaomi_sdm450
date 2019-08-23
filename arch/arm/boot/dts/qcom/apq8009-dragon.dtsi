@@ -106,7 +106,6 @@
 	qcom,pronto@a21b000 {
 		status = "disabled";
 	};
-<<<<<<< HEAD
 
 	bluetooth: bt_qca9379 {
 		compatible = "qca,qca9379";
@@ -130,7 +129,7 @@
 &blsp1_uart2_rfr_active {
 	mux {
 		function = "blsp_uart2";
-=======
+
 };
 
 &firmware {
@@ -155,7 +154,6 @@
 				status = "ok";
 			};
 		};
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
 	};
 };
 
