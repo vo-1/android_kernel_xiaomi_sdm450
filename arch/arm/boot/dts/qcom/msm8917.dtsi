@@ -63,7 +63,6 @@
 					dev = "/dev/block/platform/soc/7824900.sdhci/by-name/vendor";
 					type = "ext4";
 					mnt_flags = "ro,barrier=1,discard";
-<<<<<<< HEAD
 					fsmgr_flags = "wait";
 					status = "disable";
 				};
@@ -76,11 +75,9 @@
 					status = "ok";
 				};
 
-=======
 					fsmgr_flags = "wait,verify";
 					status = "ok";
 				};
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
 			};
 		};
 	};

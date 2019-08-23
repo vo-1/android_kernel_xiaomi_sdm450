@@ -271,15 +271,12 @@ dtb-$(CONFIG_ARCH_MSM8953) += msm8953-sim.dtb \
 dtb-$(CONFIG_ARCH_SDM450) += sdm450-rcm.dtb \
 	sdm450-mtp.dtb \
 	sdm450-qrd.dtb \
-<<<<<<< HEAD
 	sdm450-qrd_rosy.dtb
-=======
 	sdm450-pmi8940-mtp.dtb \
 	sdm450-pmi8937-mtp.dtb \
 	sdm450-iot-mtp.dtb \
 	sda450-cdp.dtb \
 	sda450-mtp.dtb
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
 
 dtb-$(CONFIG_ARCH_MDM9607) += mdm9607-rumi.dtb \
 	mdm9607-cdp.dtb \
@@ -302,13 +299,10 @@ dtb-$(CONFIG_ARCH_MSM8909) += msm8909-pm8916-mtp.dtb \
         msm8909-1gb-qrd-skuc.dtb \
         msm8909-1gb-qrd-skue.dtb \
         msm8909-qrd-skue.dtb \
-<<<<<<< HEAD
 	msm8909w-wtp.dtb \
 	apq8009w-wtp.dtb \
-=======
 	sdw2100-msm8909w-wtp.dtb \
 	sdw2100-apq8009w-wtp.dtb \
->>>>>>> 02f9b3ea905cecb5771d9b0419ffc674281078a0
 	apq8009w-cdp.dtb \
 	sdw2100-msm8909w-swoctp.dtb \
 	msm8909w-swoctp-circpanel.dtb \
