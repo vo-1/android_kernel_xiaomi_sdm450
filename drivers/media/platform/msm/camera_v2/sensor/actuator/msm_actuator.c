@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 /* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
  * Copyright (C) 2019 XiaoMi, Inc.
 =======
